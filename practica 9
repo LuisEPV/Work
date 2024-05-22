@@ -1,0 +1,33 @@
+import sys
+from PyQt5 import QtWidgets
+from motor_control import Ui_MainWindow
+from pyfirmata import Arduino, util
+
+board = Arduino('COM3')
+
+class MotorControlWindow(QtWidgets.QMainWindow, Ui_MainWindow):
+    def __init__(self, parent=None):
+        super(MotorControlWindow, self).__init__(parent)
+        self.setupUi(self)
+        self.speedSlider.valueChanged.connect(self.update_speed)
+        self.stopButton.clicked.connect(self.stop_motor)
+        
+        # Obtener el pin una sola vez y guardarlo en un atributo de la clase
+        self.pin = board.get_pin('d:3:p')
+
+    def update_speed(self, value):
+        """Actualiza velocidad de motor enviando un valor PWM."""
+        self.pin.write(value / 100.0)
+
+    def stop_motor(self):
+        """Detiene el motor inmediatamente"""
+        self.pin.write(0)
+        self.speedSlider.setValue(0)
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    main_win = MotorControlWindow()
+    main_win.show()
+    sys.exit(app.exec_())
+
+    
